@@ -1,0 +1,101 @@
+import pygame
+import random
+
+# Initialize pygame
+pygame.init()
+
+# Set screen dimensions
+screen_width = 800
+screen_height = 600
+screen = pygame.display.set_mode((screen_width, screen_height))
+pygame.display.set_caption('Catch the Falling Blocks')
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+
+# Clock to control FPS
+clock = pygame.time.Clock()
+
+# Catcher properties
+catcher_width = 100
+catcher_height = 20
+catcher_x = screen_width // 2 - catcher_width // 2
+catcher_y = screen_height - 50
+catcher_speed = 20
+catcher = pygame.Rect(catcher_x, catcher_y, catcher_width, catcher_height)
+
+# Falling block properties
+block_width = 50
+block_height = 50
+block_x = random.randint(0, screen_width - block_width)
+block_y = -block_height
+block_speed = 10
+block = pygame.Rect(block_x, block_y, block_width, block_height)
+
+# Game variables
+score = 0
+missed = 0
+miss_limit = 5
+running = True
+
+# Game loop
+while running:
+    screen.fill(WHITE)
+
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    # Move catcher with arrow keys
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and catcher.left > 0:
+        catcher.x -= catcher_speed
+    if keys[pygame.K_RIGHT] and catcher.right < screen_width:
+        catcher.x += catcher_speed
+
+    # Move block down
+    block.y += block_speed
+
+    # Check for collision
+    if block.colliderect(catcher):
+        score += 1
+        block.x = random.randint(0, screen_width - block_width)
+        block.y = -block_height
+
+    # If block goes off screen
+    if block.y > screen_height:
+        missed += 1
+        block.x = random.randint(0, screen_width - block_width)
+        block.y = -block_height
+
+    # Draw the catcher and block
+    pygame.draw.rect(screen, BLUE, catcher)
+    pygame.draw.rect(screen, RED, block)
+
+    # Display score and missed blocks
+    font = pygame.font.SysFont(None, 36)
+    score_text = font.render(f'Score: {score}', True, BLACK)
+    missed_text = font.render(f'Missed: {missed}/{miss_limit}', True, BLACK)
+    screen.blit(score_text, (20, 20))
+    screen.blit(missed_text, (20, 60))
+
+    # Game over condition
+    if missed >= miss_limit:
+        game_over_text = font.render('Game Over', True, BLACK)
+        screen.blit(game_over_text, (screen_width // 2 - 100, screen_height // 2))
+        pygame.display.update()
+        pygame.time.wait(2000)
+        running = False
+
+    # Update the screen
+    pygame.display.flip()
+
+    # Control frame rate
+    clock.tick(60)
+
+# Quit pygame
+pygame.quit()
